@@ -37,7 +37,7 @@
                                             </label>
                                         </subviews>
                                     </stackView>
-                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="9Ca-6c-2sY" userLabel="Previev Image">
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="9Ca-6c-2sY" userLabel="Previev Image">
                                         <rect key="frame" x="0.0" y="43.5" width="374" height="561"/>
                                         <color key="backgroundColor" name="YP White"/>
                                         <constraints>
@@ -124,7 +124,9 @@
                     <connections>
                         <outlet property="counterLabel" destination="TS1-C7-T3y" id="sar-rP-TUt"/>
                         <outlet property="imageView" destination="9Ca-6c-2sY" id="Zoo-AX-MiZ"/>
+                        <outlet property="noButton" destination="Izb-0d-ke2" id="PIy-PO-Vtp"/>
                         <outlet property="textLabel" destination="b54-Oz-yaK" id="94d-3u-a2z"/>
+                        <outlet property="yesButton" destination="1Tx-ei-6tz" id="C2B-w7-8qd"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

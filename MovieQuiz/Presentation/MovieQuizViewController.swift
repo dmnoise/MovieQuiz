@@ -2,14 +2,16 @@ import UIKit
 
 
 final class MovieQuizViewController: UIViewController {
-    
-    private var currentQuestionIndex = 0
-    private var correctAnswers = 0
-    
+    // MARK: - IBOutlet
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var imageView: UIImageView!
     @IBOutlet weak private var counterLabel: UILabel!
+    @IBOutlet weak private var noButton: UIButton!
+    @IBOutlet weak private var yesButton: UIButton!
     
+    // MARK: - Private Properties
+    private var currentQuestionIndex = 0
+    private var correctAnswers = 0
     private let questions = [QuizQuestion(image: "The Godfather",
                                           text: "Рейтинг этого фильма больше чем 9?",
                                           correctAnswer: true),
@@ -41,6 +43,25 @@ final class MovieQuizViewController: UIViewController {
                                           text: "Рейтинг этого фильма больше чем 7?",
                                           correctAnswer: false)]
     
+    
+    // MARK: - viewDidLoad
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        let currentQuestion = questions[currentQuestionIndex]
+        show(quiz: convert(model: currentQuestion))
+        
+        // Зададим параметры для рамки
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderWidth = 8 // толщина рамки
+        imageView.layer.cornerRadius = 20 // радиус скругления углов рамки
+        imageView.layer.borderColor = UIColor.clear.cgColor // Цвет пока не надо
+
+
+    }
+    
+    
+    // MARK: - Private Methods
     // Вопрос
     private struct QuizQuestion {
         let image: String
@@ -61,10 +82,9 @@ final class MovieQuizViewController: UIViewController {
         let text: String
         let buttonText: String
     }
-    
-    // MARK: - Methods
-    
-    // Преобразуем для показа
+ 
+        
+    /// Преобразуем для показа
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(image: UIImage(named: model.image) ?? UIImage.default,
                                  question: model.text,
@@ -72,7 +92,7 @@ final class MovieQuizViewController: UIViewController {
     }
     
     
-    // Показать главный экран
+    /// Показать главный экран
     private func show(quiz step: QuizStepViewModel) {
         textLabel.text = step.question
         imageView.image = step.image
@@ -80,7 +100,7 @@ final class MovieQuizViewController: UIViewController {
     }
     
     
-    // Показать результаты
+    /// Вызывает окно с результатами
     private func show(quiz step: QuizResultsViewModel) {
         // Создаём объекты всплывающего окна
         let alert = UIAlertController(title: step.title, // заголовок всплывающего окна
@@ -100,10 +120,15 @@ final class MovieQuizViewController: UIViewController {
         self.present(alert, animated: true, completion: nil)
     }
     
+    /// Переключает состояние кнопки "Да" и "Нет"
+    private func toggleButtonYesNo(_ state: Bool) {
+        yesButton.isEnabled = state
+        noButton.isEnabled = state
+    }
+    
+    /// Показываем результат в зависимости от ответа
     private func showAnswerResult(isCorrect: Bool) {
-        imageView.layer.masksToBounds = true
-        imageView.layer.borderWidth = 8 // толщина рамки
-        imageView.layer.cornerRadius = 20 // радиус скругления углов рамки
+        // Меняем цвет на красный или зеленый в зависимости от результата
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
         
         // Прибавляем если ответ правильный
@@ -111,17 +136,23 @@ final class MovieQuizViewController: UIViewController {
             correctAnswers += 1
         }
         
+        // Выключаем кнопки, чтобы не жмали лишний раз
+        toggleButtonYesNo(false)
+        
         // Показать следующий через секунду
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
            self.showNextQuestionOrResults()
         }
     }
+
     
-    
-    // Следующий вопрос
+    /// Показывает следующий вопрос
     private func showNextQuestionOrResults() {
         // Ставлю прозрачный цвет рамки, иначе будет висеть с прошлого вопроса
         imageView.layer.borderColor = UIColor.clear.cgColor
+        
+        // Включаем кнопки обратно
+        toggleButtonYesNo(true)
         
         if currentQuestionIndex == questions.count - 1 {
             show(quiz: QuizResultsViewModel(title: "Этот раунд окончен!",
@@ -139,7 +170,7 @@ final class MovieQuizViewController: UIViewController {
     
     
     
-    // MARK: - Buttons yes and no
+    // MARK: - IBAction
     @IBAction private func yesButtonClicked() {
         let currentQuestion = questions[currentQuestionIndex]
         
@@ -153,15 +184,7 @@ final class MovieQuizViewController: UIViewController {
     }
     
     
-    
-    // MARK: - Lifecycle
-    override func viewDidLoad() {
-        super.viewDidLoad()
         
-        let currentQuestion = questions[currentQuestionIndex]
-        show(quiz: convert(model: currentQuestion))
-
-    }
 }
 
 
