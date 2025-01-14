@@ -17,6 +17,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     
+    private var statisticService: StatisticServiceProtocol?
+    
     
     // MARK: - viewDidLoad
     override func viewDidLoad() {
@@ -32,6 +34,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         imageView.layer.borderWidth = 8 // толщина рамки
         imageView.layer.cornerRadius = 20 // радиус скругления углов рамки
         imageView.layer.borderColor = UIColor.clear.cgColor // Цвет пока не надо
+        
+        // Инициализируем статистику
+        statisticService = StatisticService()
     }
     
     // MARK: -QuestionFactoryDelegate
@@ -119,10 +124,21 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         // Включаем кнопки обратно
         toggleButtonYesNo(true)
         
+        // Если это был последний вопрос
         if currentQuestionIndex == questionsAmount - 1 {
-            let text = correctAnswers == questionsAmount ?
-            "Поздравляем, вы ответили на \(correctAnswers) из \(questionsAmount)!" :
-            "Вы ответили на \(correctAnswers) из \(questionsAmount), попробуйте еще раз!"
+            // Сначала сохраню, иначе не покажет рекорд текщий и +1 игру
+            statisticService?.store(result: GameResult(correct: correctAnswers, total: questionsAmount, date: Date()))
+            
+            // Ставлю еще стандартне значения, вдруг ничего не будет
+            let countQuiz = statisticService?.gamesCount ?? 0
+            let recordCorrect = statisticService?.bestGame.correct ?? 0
+            let totalAccuracy = String(format: "%.2f", statisticService?.totalAccuracy ?? 0.0)
+            let dateRecord = statisticService?.bestGame.date.dateTimeString ?? Date().dateTimeString
+            
+            let text = "Ваш результат \(correctAnswers)/\(questionsAmount)\n" +
+            "Количество сыгранных квизов: \(countQuiz)\n" +
+            "Рекорд: \(recordCorrect)/\(questionsAmount) (\(dateRecord))\n" +
+            "Средняя точность: \(totalAccuracy)%"
             
             // Конец раунда, показываем алерт
             show(quiz: QuizResultsViewModel(title: "Этот раунд окончен!",
