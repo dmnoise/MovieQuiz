@@ -19,11 +19,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     private var statisticService: StatisticServiceProtocol?
     
-    
     // MARK: - viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
+        statisticService = StatisticService()
         questionFactory = QuestionFactory(delegate: self)
         
         // Показывем первый вопрос
@@ -34,9 +34,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         imageView.layer.borderWidth = 8 // толщина рамки
         imageView.layer.cornerRadius = 20 // радиус скругления углов рамки
         imageView.layer.borderColor = UIColor.clear.cgColor // Цвет пока не надо
-        
-        // Инициализируем статистику
-        statisticService = StatisticService()
     }
     
     // MARK: -QuestionFactoryDelegate
@@ -53,9 +50,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
     }
     
-    
     // MARK: - Private Methods
-        
     /// Преобразуем для показа
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(image: UIImage(named: model.image) ?? UIImage.default,
@@ -63,14 +58,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                                  questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
     }
     
-    
     /// Показать главный экран
     private func show(quiz step: QuizStepViewModel) {
         textLabel.text = step.question
         imageView.image = step.image
         counterLabel.text = step.questionNumber
     }
-    
     
     /// Вызывает окно с результатами
     private func show(quiz step: QuizResultsViewModel) {
@@ -94,13 +87,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         noButton.isEnabled = state
     }
     
-    
     /// Показываем результат в зависимости от ответа
     private func showAnswerResult(isCorrect: Bool) {
         // Меняем цвет на красный или зеленый в зависимости от результата
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
         
-        // Прибавляем если ответ правильный
         if isCorrect {
             correctAnswers += 1
         }
@@ -108,13 +99,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         // Выключаем кнопки, чтобы не жмали лишний раз
         toggleButtonYesNo(false)
         
-        // Показать следующий через секунду
+        // Показать следующий через секунду, чтобы было время насладиться результатом
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
             self.showNextQuestionOrResults()
         }
     }
-
     
     /// Показывает следующий вопрос
     private func showNextQuestionOrResults() {
@@ -126,10 +116,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         
         // Если это был последний вопрос
         if currentQuestionIndex == questionsAmount - 1 {
-            // Сначала сохраню, иначе не покажет рекорд текщий и +1 игру
+            // Сначала сохраню, иначе не покажет рекорд текущий и +1 игру
             statisticService?.store(result: GameResult(correct: correctAnswers, total: questionsAmount, date: Date()))
             
-            // Ставлю еще стандартне значения, вдруг ничего не будет
+            // Ставлю еще стандартные значения. Вдруг ничего не будет, ну и распаковать вроде как надо
             let countQuiz = statisticService?.gamesCount ?? 0
             let recordCorrect = statisticService?.bestGame.correct ?? 0
             let totalAccuracy = String(format: "%.2f", statisticService?.totalAccuracy ?? 0.0)
@@ -146,13 +136,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                                             buttonText: "Сыграть еще раз"))
         } else {
             currentQuestionIndex += 1
-            
-            // Следующий вопрос
             questionFactory?.requestNextQuestion()
         }
     }
-    
-    
     
     // MARK: - IBAction
     @IBAction private func yesButtonClicked() {

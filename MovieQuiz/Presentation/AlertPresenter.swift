@@ -15,12 +15,10 @@ class AlertPresenter {
     }
     
     func presentAlert(from viewController: UIViewController) {
-        // Создаём объекты всплывающего окна
-        let alert = UIAlertController(title: model.title, // заголовок всплывающего окна
-                                      message: model.message, // текст во всплывающем окне
+        let alert = UIAlertController(title: model.title,
+                                      message: model.message,
                                       preferredStyle: .alert)
         
-        // Создаём для алерта кнопку с действием
         let action = UIAlertAction(title: model.buttonText, style: .default) { _ in
             self.model.closure()
         }
