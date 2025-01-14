@@ -22,7 +22,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         statisticService = StatisticService()
         questionFactory = QuestionFactory(delegate: self)
         
@@ -70,12 +70,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         let alertModel = AlertModel(title: step.title,
                                message: step.text,
                                buttonText: step.buttonText) { [weak self] in
+            guard let self = self else { return }
+            
             // Сбрасываем показатели
-            self?.currentQuestionIndex = 0
-            self?.correctAnswers = 0
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
             
             // Покажем новый вопрос
-            self?.questionFactory?.requestNextQuestion()
+            self.questionFactory?.requestNextQuestion()
         }
         
         AlertPresenter(from: alertModel).presentAlert(from: self)
