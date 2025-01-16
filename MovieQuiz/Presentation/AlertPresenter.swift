@@ -7,8 +7,8 @@
 
 import UIKit
 
-class AlertPresenter {
-    private var model: AlertModel
+final class AlertPresenter {
+    private let model: AlertModel
     
     init(from alertModel: AlertModel) {
         self.model = alertModel

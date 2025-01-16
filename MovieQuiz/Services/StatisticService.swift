@@ -7,13 +7,13 @@
 
 import Foundation
 
-class StatisticService: StatisticServiceProtocol {
+final class StatisticService: StatisticServiceProtocol {
     private enum Keys: String {
         case correct
         case gamesCount
-        case bestGame_count
-        case bestGame_ammout
-        case bestGame_date
+        case bestGameCount
+        case bestGameAmmout
+        case bestGameDate
         
     }
     
@@ -42,14 +42,14 @@ class StatisticService: StatisticServiceProtocol {
     /// Лучшая игра
     var bestGame: GameResult {
         get {
-            GameResult(correct: storage.integer(forKey: Keys.bestGame_count.rawValue),
-                       total: storage.integer(forKey: Keys.bestGame_ammout.rawValue),
-                       date: storage.object(forKey: Keys.bestGame_date.rawValue) as? Date ?? Date())
+            GameResult(correct: storage.integer(forKey: Keys.bestGameCount.rawValue),
+                       total: storage.integer(forKey: Keys.bestGameAmmout.rawValue),
+                       date: storage.object(forKey: Keys.bestGameDate.rawValue) as? Date ?? Date())
         }
         set {
-            storage.set(newValue.correct, forKey: Keys.bestGame_count.rawValue)
-            storage.set(newValue.total, forKey: Keys.bestGame_ammout.rawValue)
-            storage.set(newValue.date, forKey: Keys.bestGame_date.rawValue)
+            storage.set(newValue.correct, forKey: Keys.bestGameCount.rawValue)
+            storage.set(newValue.total, forKey: Keys.bestGameAmmout.rawValue)
+            storage.set(newValue.date, forKey: Keys.bestGameDate.rawValue)
         }
     }
     

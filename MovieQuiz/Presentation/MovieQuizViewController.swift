@@ -38,7 +38,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // MARK: -QuestionFactoryDelegate
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
+        guard let question else {
             return
         }
         
@@ -70,7 +70,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         let alertModel = AlertModel(title: step.title,
                                message: step.text,
                                buttonText: step.buttonText) { [weak self] in
-            guard let self = self else { return }
+            guard let self else { return }
             
             // Сбрасываем показатели
             self.currentQuestionIndex = 0
@@ -103,7 +103,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         
         // Показать следующий через секунду, чтобы было время насладиться результатом
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self = self else { return }
+            guard let self else { return }
             self.showNextQuestionOrResults()
         }
     }
@@ -144,7 +144,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // MARK: - IBAction
     @IBAction private func yesButtonClicked() {
-        guard let currentQuestion = currentQuestion else {
+        guard let currentQuestion else {
             return
         }
         
@@ -153,7 +153,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     
     @IBAction private func noButtonClicked() {
-        guard let currentQuestion = currentQuestion else {
+        guard let currentQuestion else {
             return
         }
     
