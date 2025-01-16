@@ -1,7 +1,7 @@
 import UIKit
 
 
-final class MovieQuizViewController: UIViewController {
+final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - IBOutlet
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var imageView: UIImageView!
@@ -12,85 +12,51 @@ final class MovieQuizViewController: UIViewController {
     // MARK: - Private Properties
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
-    private let questions = [QuizQuestion(image: "The Godfather",
-                                          text: "Рейтинг этого фильма больше чем 9?",
-                                          correctAnswer: true),
-                             QuizQuestion(image: "The Dark Knight",
-                                          text: "Рейтинг этого фильма больше чем 7?",
-                                          correctAnswer: true),
-                             QuizQuestion(image: "Kill Bill",
-                                          text: "Рейтинг этого фильма больше чем 8?",
-                                          correctAnswer: true),
-                             QuizQuestion(image: "The Avengers",
-                                          text: "Рейтинг этого фильма больше чем 6?",
-                                          correctAnswer: true),
-                             QuizQuestion(image: "Deadpool",
-                                          text: "Рейтинг этого фильма больше чем 7?",
-                                          correctAnswer: true),
-                             QuizQuestion(image: "The Green Knight",
-                                          text: "Рейтинг этого фильма больше чем 6?",
-                                          correctAnswer: true),
-                             QuizQuestion(image: "Old",
-                                          text: "Рейтинг этого фильма больше чем 7?",
-                                          correctAnswer: false),
-                             QuizQuestion(image: "The Ice Age Adventures of Buck Wild",
-                                          text: "Рейтинг этого фильма больше чем 5?",
-                                          correctAnswer: false),
-                             QuizQuestion(image: "Tesla",
-                                          text: "Рейтинг этого фильма больше чем 6?",
-                                          correctAnswer: false),
-                             QuizQuestion(image: "Vivarium",
-                                          text: "Рейтинг этого фильма больше чем 7?",
-                                          correctAnswer: false)]
     
+    private let questionsAmount: Int = 10
+    private var questionFactory: QuestionFactoryProtocol?
+    private var currentQuestion: QuizQuestion?
+    
+    private var statisticService: StatisticServiceProtocol?
     
     // MARK: - viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let currentQuestion = questions[currentQuestionIndex]
-        show(quiz: convert(model: currentQuestion))
+        statisticService = StatisticService()
+        questionFactory = QuestionFactory(delegate: self)
         
+        // Показывем первый вопрос
+        questionFactory?.requestNextQuestion()
+                
         // Зададим параметры для рамки
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8 // толщина рамки
         imageView.layer.cornerRadius = 20 // радиус скругления углов рамки
         imageView.layer.borderColor = UIColor.clear.cgColor // Цвет пока не надо
-
-
     }
     
+    // MARK: -QuestionFactoryDelegate
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question else {
+            return
+        }
+        
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.show(quiz: viewModel)
+        }
+    }
     
     // MARK: - Private Methods
-    // Вопрос
-    private struct QuizQuestion {
-        let image: String
-        let text: String
-        let correctAnswer: Bool
-    }
-
-    // Вопрос показан
-    private struct QuizStepViewModel {
-        let image: UIImage
-        let question: String
-        let questionNumber: String
-    }
-
-    // Результат квиза
-    private struct QuizResultsViewModel {
-        let title: String
-        let text: String
-        let buttonText: String
-    }
- 
-        
     /// Преобразуем для показа
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(image: UIImage(named: model.image) ?? UIImage.default,
                                  question: model.text,
-                                 questionNumber: "\(currentQuestionIndex + 1)/\(questions.count)")
+                                 questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
     }
-    
     
     /// Показать главный экран
     private func show(quiz step: QuizStepViewModel) {
@@ -99,25 +65,22 @@ final class MovieQuizViewController: UIViewController {
         counterLabel.text = step.questionNumber
     }
     
-    
     /// Вызывает окно с результатами
     private func show(quiz step: QuizResultsViewModel) {
-        // Создаём объекты всплывающего окна
-        let alert = UIAlertController(title: step.title, // заголовок всплывающего окна
-                                      message: step.text, // текст во всплывающем окне
-                                      preferredStyle: .alert)
-        
-        // Создаём для алерта кнопку с действием
-        let action = UIAlertAction(title: step.buttonText, style: .default) { _ in
+        let alertModel = AlertModel(title: step.title,
+                               message: step.text,
+                               buttonText: step.buttonText) { [weak self] in
+            guard let self else { return }
+            
+            // Сбрасываем показатели
             self.currentQuestionIndex = 0
             self.correctAnswers = 0
             
-            let currentQuestion = self.questions[self.currentQuestionIndex]
-            self.show(quiz: self.convert(model: currentQuestion))
+            // Покажем новый вопрос
+            self.questionFactory?.requestNextQuestion()
         }
         
-        alert.addAction(action)
-        self.present(alert, animated: true, completion: nil)
+        AlertPresenter(from: alertModel).presentAlert(from: self)
     }
     
     /// Переключает состояние кнопки "Да" и "Нет"
@@ -131,7 +94,6 @@ final class MovieQuizViewController: UIViewController {
         // Меняем цвет на красный или зеленый в зависимости от результата
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
         
-        // Прибавляем если ответ правильный
         if isCorrect {
             correctAnswers += 1
         }
@@ -139,12 +101,12 @@ final class MovieQuizViewController: UIViewController {
         // Выключаем кнопки, чтобы не жмали лишний раз
         toggleButtonYesNo(false)
         
-        // Показать следующий через секунду
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-           self.showNextQuestionOrResults()
+        // Показать следующий через секунду, чтобы было время насладиться результатом
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self else { return }
+            self.showNextQuestionOrResults()
         }
     }
-
     
     /// Показывает следующий вопрос
     private func showNextQuestionOrResults() {
@@ -154,100 +116,48 @@ final class MovieQuizViewController: UIViewController {
         // Включаем кнопки обратно
         toggleButtonYesNo(true)
         
-        if currentQuestionIndex == questions.count - 1 {
+        // Если это был последний вопрос
+        if currentQuestionIndex == questionsAmount - 1 {
+            // Сначала сохраню, иначе не покажет рекорд текущий и +1 игру
+            statisticService?.store(result: GameResult(correct: correctAnswers, total: questionsAmount, date: Date()))
+            
+            // Ставлю еще стандартные значения. Вдруг ничего не будет, ну и распаковать вроде как надо
+            let countQuiz = statisticService?.gamesCount ?? 0
+            let recordCorrect = statisticService?.bestGame.correct ?? 0
+            let totalAccuracy = String(format: "%.2f", statisticService?.totalAccuracy ?? 0.0)
+            let dateRecord = statisticService?.bestGame.date.dateTimeString ?? Date().dateTimeString
+            
+            let text = "Ваш результат \(correctAnswers)/\(questionsAmount)\n" +
+            "Количество сыгранных квизов: \(countQuiz)\n" +
+            "Рекорд: \(recordCorrect)/\(questionsAmount) (\(dateRecord))\n" +
+            "Средняя точность: \(totalAccuracy)%"
+            
+            // Конец раунда, показываем алерт
             show(quiz: QuizResultsViewModel(title: "Этот раунд окончен!",
-                                            text: "Ваш результат \(correctAnswers)/\(questions.count)",
+                                            text: text,
                                             buttonText: "Сыграть еще раз"))
         } else {
             currentQuestionIndex += 1
-            
-            let nextQuestion = questions[currentQuestionIndex]
-            let viewModel = convert(model: nextQuestion)
-            
-            show(quiz: viewModel)
+            questionFactory?.requestNextQuestion()
         }
     }
     
-    
-    
     // MARK: - IBAction
     @IBAction private func yesButtonClicked() {
-        let currentQuestion = questions[currentQuestionIndex]
+        guard let currentQuestion else {
+            return
+        }
         
         showAnswerResult(isCorrect: currentQuestion.correctAnswer == true)
     }
     
+    
     @IBAction private func noButtonClicked() {
-        let currentQuestion = questions[currentQuestionIndex]
-        
+        guard let currentQuestion else {
+            return
+        }
+    
         showAnswerResult(isCorrect: currentQuestion.correctAnswer == false)
     }
     
-    
-        
 }
-
-
-/*
- Mock-данные
- 
- 
- Картинка: The Godfather
- Настоящий рейтинг: 9,2
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: The Dark Knight
- Настоящий рейтинг: 9
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: Kill Bill
- Настоящий рейтинг: 8,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: The Avengers
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: Deadpool
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: The Green Knight
- Настоящий рейтинг: 6,6
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: Old
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- 
- 
- Картинка: The Ice Age Adventures of Buck Wild
- Настоящий рейтинг: 4,3
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- 
- 
- Картинка: Tesla
- Настоящий рейтинг: 5,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- 
- 
- Картинка: Vivarium
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
-*/
