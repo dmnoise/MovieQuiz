@@ -49,7 +49,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             return
         }
                 
-        // Показать ошибку если изображение не загрузилось
         if question.image == Data() {
             showNetworkError(message: "Не получилось загрузить изображение")
             return
@@ -70,7 +69,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // MARK: - Public methods
     func didLoadDataFromServer() {
-//        visibilityLoadingIndicaor(to: false)
         questionFactory?.requestNextQuestion()
     }
     
