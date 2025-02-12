@@ -1,7 +1,7 @@
 import UIKit
 
 
-final class MovieQuizViewController: UIViewController {
+final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
     // MARK: - IBOutlet
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var imageView: UIImageView!
@@ -12,13 +12,11 @@ final class MovieQuizViewController: UIViewController {
     
     // MARK: - Private Properties    
     private var presenter: MovieQuizPresenter!
-    private var statisticService: StatisticServiceProtocol?
     
     // MARK: - viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
             
-        statisticService = StatisticService()
         presenter = MovieQuizPresenter(viewController: self)
         
         visibilityLoadingIndicaor(to: true)
@@ -31,20 +29,8 @@ final class MovieQuizViewController: UIViewController {
         imageView.layer.borderColor = UIColor.clear.cgColor // Цвет пока не надо
     }
     
-    
-    
-    // MARK: - IBAction
-    @IBAction private func yesButtonClicked() {
-        presenter.yesButtonClicked()
-    }
-    
-    
-    @IBAction private func noButtonClicked() {
-        presenter.noButtonClicked()
-    }
-    
-    // MARK: - Private Methods
-    /// Изменяем состояние индикатора загрузки
+    // MARK: - Public Methods
+    /// Изменяет состояние индикатора загрузки
     func visibilityLoadingIndicaor(to state: Bool) {
         activityIndicator.isHidden = !state
         state ? activityIndicator.startAnimating() : activityIndicator.stopAnimating()
@@ -58,13 +44,12 @@ final class MovieQuizViewController: UIViewController {
                                     buttonText: "Попробовать еще раз") { [weak self] in
             guard let self else { return }
             
-            self.presenter.restartGame()
+            self.presenter.loadNewGame()
         }
 
         AlertPresenter(from: alertModel).presentAlert(from: self)
     }
     
-//FIXME: public
     /// Показать главный экран
     func show(quiz step: QuizStepViewModel) {
         textLabel.text = step.question
@@ -73,13 +58,12 @@ final class MovieQuizViewController: UIViewController {
     }
     
     /// Вызывает окно с результатами
-    func show(quiz step: QuizResultsViewModel) {
-        let alertModel = AlertModel(title: step.title,
-                                    message: step.text,
-                                    buttonText: step.buttonText) { [weak self] in
+    func show(quiz result: QuizResultsViewModel) {
+        let alertModel = AlertModel(title: result.title,
+                                    message: result.text,
+                                    buttonText: result.buttonText) { [weak self] in
             guard let self else { return }
             
-            // Сбрасываем показатели
             self.presenter.restartGame()
         }
         
@@ -92,65 +76,26 @@ final class MovieQuizViewController: UIViewController {
         noButton.isEnabled = state
     }
     
-    func showAnswerResult(isCorrect: Bool) {
-        imageView.layer.borderColor = isCorrect
-            ? UIColor.ypGreen.cgColor
-            : UIColor.ypRed.cgColor
-        
-        presenter.didAnswer(isCorrect: isCorrect)
-                
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self else { return }
-            
-            // Ставлю прозрачный цвет рамки, иначе будет висеть с прошлого вопроса
-            imageView.layer.borderColor = UIColor.clear.cgColor
-            
-            // Индикатор загрузки, т.к. картинка при плохом интернете может грузиться доолго
-            visibilityLoadingIndicaor(to: true)
-            
-            setStateButtons(to: false)
-            
-            self.presenter.showNextQuestionOrResults()
-            
-        }
+    /// Подсветить рамку изображения
+    func highlightImageBorder(isCorrectAnswer: Bool) {
+        imageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
     }
-     
-    /// Показывает следующий вопрос
-    /*
-     private func showNextQuestionOrResults() {
-        // Ставлю прозрачный цвет рамки, иначе будет висеть с прошлого вопроса
+    
+    /// Делает рамку прозрачной
+    func setTransarentImageBorder() {
         imageView.layer.borderColor = UIColor.clear.cgColor
-        
-        // Индикатор загрузки, т.к. картинка при плохом интернете может грузиться доолго
-        visibilityLoadingIndicaor(to: true)
-        
-        // Если это был последний вопрос
-        if presenter.isLastQuestion() {
-            // Сначала сохраню, иначе не покажет рекорд текущий и +1 игру
-            statisticService?.store(result: GameResult(correct: presenter.correctAnswers, total: presenter.questionsAmount, date: Date()))
-            
-            // Ставлю еще стандартные значения. Вдруг ничего не будет, ну и распаковать вроде как надо
-            let countQuiz = statisticService?.gamesCount ?? 0
-            let recordCorrect = statisticService?.bestGame.correct ?? 0
-            let totalAccuracy = String(format: "%.2f", statisticService?.totalAccuracy ?? 0.0)
-            let dateRecord = statisticService?.bestGame.date.dateTimeString ?? Date().dateTimeString
-            
-            let text = "Ваш результат \(presenter.correctAnswers)/\(presenter.questionsAmount)\n" +
-            "Количество сыгранных квизов: \(countQuiz)\n" +
-            "Рекорд: \(recordCorrect)/\(presenter.questionsAmount) (\(dateRecord))\n" +
-            "Средняя точность: \(totalAccuracy)%"
-            
-            // Конец раунда, показываем алерт
-            show(quiz: QuizResultsViewModel(title: "Этот раунд окончен!",
-                                            text: text,
-                                            buttonText: "Сыграть еще раз"))
-        } else {
-            presenter.switchToNextQuestion()
-            questionFactory?.requestNextQuestion()
-        }
     }
-     */
+    
+    // MARK: - IBAction
+    @IBAction private func yesButtonClicked() {
+        presenter.didAnswer(isYes: true)
+    }
     
     
-    
+    @IBAction private func noButtonClicked() {
+        presenter.didAnswer(isYes: false)
+    }
 }
+
+
+

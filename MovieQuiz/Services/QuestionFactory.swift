@@ -12,6 +12,11 @@ final class QuestionFactory: QuestionFactoryProtocol {
     private let moviesLoader: MoviesLoading
     private var movies: [MostPopularMovie] = []
     
+    init(moviesLoader: MoviesLoading, delegate: QuestionFactoryDelegate? = nil) {
+        self.moviesLoader = moviesLoader
+        self.delegate = delegate
+    }
+    
     func loadData() {
         moviesLoader.loadMovies { [weak self] result in
             DispatchQueue.main.async {
@@ -65,10 +70,5 @@ final class QuestionFactory: QuestionFactoryProtocol {
             }
             
         }
-    }
-    
-    init(moviesLoader: MoviesLoading, delegate: QuestionFactoryDelegate? = nil) {
-        self.moviesLoader = moviesLoader
-        self.delegate = delegate
     }
 }

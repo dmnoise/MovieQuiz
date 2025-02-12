@@ -10,33 +10,24 @@ import XCTest
 
 final class MovieQuizUITests: XCTestCase {
     var app: XCUIApplication!
-
+    
     override func setUpWithError() throws {
         try super.setUpWithError()
         
         app = XCUIApplication()
         app.launch()
-
+        
         continueAfterFailure = false
     }
-
+    
     override func tearDownWithError() throws {
         try super.tearDownWithError()
         
         app.terminate()
         app = nil
     }
-
-    @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
-
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
     
-    
+    /// Тест кнопки "Да" (меняется ли лейбл с номером вопроса и постер)
     func testYesButton() throws {
         sleep(2)
         
@@ -55,6 +46,7 @@ final class MovieQuizUITests: XCTestCase {
         XCTAssertEqual(indexLabel.label, "2/10")
     }
     
+    /// Тест кнопки "Нет" (меняется ли лейбл с номером вопроса и постер)
     func testNoButton() throws {
         sleep(2)
         
@@ -73,7 +65,8 @@ final class MovieQuizUITests: XCTestCase {
         XCTAssertEqual(indexLabel.label, "2/10")
     }
     
-    func testFinishAlert() throws {
+    /// Тест появления алерта при окончании раунда
+    func testAlertWithResults() throws {
         sleep(2)
         
         let button = app.buttons["Yes"]
@@ -83,9 +76,24 @@ final class MovieQuizUITests: XCTestCase {
             sleep(1)
         }
         
-        let alert = app.alerts["Этот раунд окончен!"]
+        let alert = app.alerts["Game results"]
         XCTAssertTrue(alert.exists)
+        XCTAssertTrue(alert.label == "Этот раунд окончен!")
+        XCTAssertTrue(alert.buttons.firstMatch.label == "Сыграть еще раз")
     }
-
-
+    
+    /// Тест скрытия алерта после нажатия на кнопку на нём
+    func testAlertDisclosure() throws {
+        try testAlertWithResults()
+        
+        let alert = app.alerts["Game results"]
+        let button = alert.buttons.firstMatch
+        
+        button.tap()
+        
+        sleep(2)
+        
+        let indexLabel = app.staticTexts["Index"]
+        XCTAssertEqual(indexLabel.label, "1/10")
+    }
 }
