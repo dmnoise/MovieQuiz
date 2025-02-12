@@ -8,8 +8,6 @@
 import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
-    
-    
     private let questionsAmount = 10
     private var correctAnswers = 0
     private var currentQuestionIndex = 0
@@ -107,7 +105,6 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     /// Показывает результат ответа на вопрос
     private func proceedWithAnswer(isCorrect: Bool) {
-        
         // Сразу выключаю кнопки, чтобы не жмали пока смотрят на результат
         viewController?.setStateButtons(to: false)
         
