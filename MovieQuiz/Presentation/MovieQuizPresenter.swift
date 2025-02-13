@@ -70,8 +70,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.show(quiz: viewModel)
-            self?.viewController?.setStateButtons(to: true)
-            self?.viewController?.visibilityLoadingIndicaor(to: false)
+            self?.viewController?.setStateButtons(isEnabled: true)
+            self?.viewController?.visibilityLoadingIndicaor(isEnabled: false)
         }
     }
     
@@ -106,8 +106,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     /// Показывает результат ответа на вопрос
     private func proceedWithAnswer(isCorrect: Bool) {
         // Сразу выключаю кнопки, чтобы не жмали пока смотрят на результат
-        viewController?.setStateButtons(to: false)
-        
+        viewController?.setStateButtons(isEnabled: false)
         viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
         
         if isCorrect {
@@ -121,7 +120,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             self.viewController?.setTransarentImageBorder()
             
             // Индикатор загрузки, т.к. картинка при плохом интернете может грузиться доолго
-            self.viewController?.visibilityLoadingIndicaor(to: true)
+            self.viewController?.visibilityLoadingIndicaor(isEnabled: true)
             
             self.proceedToNextQuestionOrResults()
         }
@@ -129,7 +128,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     /// Генерирует сообщение с результатами
     private func makeResultMessage() -> String {
-        guard let statisticService else { return "" }
+        guard let statisticService else { return "Ошибка загрузки результатов" }
         
         let gameResult = GameResult(correct: correctAnswers, total: questionsAmount, date: Date())
         statisticService.store(result: gameResult)

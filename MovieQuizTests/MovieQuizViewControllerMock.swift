@@ -12,8 +12,8 @@ final class MovieQuizViewControllerMock: MovieQuizViewControllerProtocol {
     func show(quiz step: QuizStepViewModel) { }
     func show(quiz result: QuizResultsViewModel) { }
     func highlightImageBorder(isCorrectAnswer: Bool) { }
-    func visibilityLoadingIndicaor(to state: Bool) { }
+    func visibilityLoadingIndicaor(isEnabled: Bool) { }
     func showNetworkError(message: String) { }
-    func setStateButtons(to state: Bool) { }
+    func setStateButtons(isEnabled: Bool) { }
     func setTransarentImageBorder() { }
 }

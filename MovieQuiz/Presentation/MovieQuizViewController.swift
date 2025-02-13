@@ -11,7 +11,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     
     // MARK: - Private Properties    
-    private var presenter: MovieQuizPresenter!
+    private var presenter: MovieQuizPresenter?
     
     // MARK: - viewDidLoad
     override func viewDidLoad() {
@@ -19,8 +19,8 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
             
         presenter = MovieQuizPresenter(viewController: self)
         
-        visibilityLoadingIndicaor(to: true)
-        setStateButtons(to: false)
+        visibilityLoadingIndicaor(isEnabled: true)
+        setStateButtons(isEnabled: false)
                         
         // Зададим параметры для рамки
         imageView.layer.masksToBounds = true
@@ -31,20 +31,19 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     
     // MARK: - Public Methods
     /// Изменяет состояние индикатора загрузки
-    func visibilityLoadingIndicaor(to state: Bool) {
-        activityIndicator.isHidden = !state
-        state ? activityIndicator.startAnimating() : activityIndicator.stopAnimating()
+    func visibilityLoadingIndicaor(isEnabled: Bool) {
+        activityIndicator.isHidden = !isEnabled
+        isEnabled ? activityIndicator.startAnimating() : activityIndicator.stopAnimating()
     }
     
     /// Алерт при ошибке загрузки данных с сервера
     func showNetworkError(message: String) {
-        
         let alertModel = AlertModel(title: "Что-то пошло не так :(",
                                     message: message,
                                     buttonText: "Попробовать еще раз") { [weak self] in
             guard let self else { return }
             
-            self.presenter.loadNewGame()
+            self.presenter?.loadNewGame()
         }
 
         AlertPresenter(from: alertModel).presentAlert(from: self)
@@ -64,16 +63,16 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
                                     buttonText: result.buttonText) { [weak self] in
             guard let self else { return }
             
-            self.presenter.restartGame()
+            self.presenter?.restartGame()
         }
         
         AlertPresenter(from: alertModel).presentAlert(from: self)
     }
     
     /// Переключает состояние кнопки "Да" и "Нет"
-    func setStateButtons(to state: Bool) {
-        yesButton.isEnabled = state
-        noButton.isEnabled = state
+    func setStateButtons(isEnabled: Bool) {
+        yesButton.isEnabled = isEnabled
+        noButton.isEnabled = isEnabled
     }
     
     /// Подсветить рамку изображения
@@ -88,12 +87,12 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     
     // MARK: - IBAction
     @IBAction private func yesButtonClicked() {
-        presenter.didAnswer(isYes: true)
+        presenter?.didAnswer(isYes: true)
     }
     
     
     @IBAction private func noButtonClicked() {
-        presenter.didAnswer(isYes: false)
+        presenter?.didAnswer(isYes: false)
     }
 }
 
