@@ -147,4 +147,3 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     }
     
 }
-    

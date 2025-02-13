@@ -95,6 +95,3 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         presenter?.didAnswer(isYes: false)
     }
 }
-
-
-
